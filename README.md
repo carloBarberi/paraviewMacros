@@ -87,3 +87,7 @@ A description of the different macros in the repository follows:
     <div style="text-align: left;">
         <img src="0_Figures\ZZ_sampleImages\12.jpeg" width="384" height="216">
     </div>
+- `Cf.py`: skin friction coefficient
+    <div style="text-align: left;">
+        <img src="0_Figures\ZZ_sampleImages\13.jpeg" width="384" height="216">
+    </div>
