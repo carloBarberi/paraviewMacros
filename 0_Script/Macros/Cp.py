@@ -6,12 +6,12 @@
 #######################################################################################
 
 # If true, the surface LIC will be shown
-sLIC = True
+sLIC = False
 
 # Image resolution
 imageSize = [1920, 1080]                            # 1080p
 imageSize = [2560, 1440]                            # 2K
-imageSize = [3840, 2160]                            # 4K
+# imageSize = [3840, 2160]                            # 4K
 
 # Value that will change the text and colorbar size based on the image resolution
 coeff = 1

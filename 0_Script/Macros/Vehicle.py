@@ -8,7 +8,7 @@
 # Image resolution
 imageSize = [1920, 1080]                            # 1080p
 imageSize = [2560, 1440]                            # 2K
-imageSize = [3840, 2160]                            # 4K
+# imageSize = [3840, 2160]                            # 4K
 
 # Name of the .foam file
 Foam_name = 'results.foam'
@@ -133,7 +133,7 @@ SetActiveSource(reflect1)
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/000_Top.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Vehicle/000_Top.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -166,7 +166,7 @@ SetActiveSource(reflect1)
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/000_Bottom.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Vehicle/000_Bottom.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -190,7 +190,7 @@ SetActiveSource(reflect1)
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/000_Left.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Vehicle/000_Left.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -214,7 +214,7 @@ SetActiveSource(reflect1)
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/000_Right.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Vehicle/000_Right.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -238,7 +238,7 @@ SetActiveSource(reflect1)
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/000_Front.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Vehicle/000_Front.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -262,7 +262,7 @@ SetActiveSource(reflect1)
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/000_Rear.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Vehicle/000_Rear.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -320,7 +320,7 @@ renderView1 = GetActiveViewOrCreate('RenderView')
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/00_3D_1.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Vehicle/00_3D_1.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -342,7 +342,7 @@ renderView1 = GetActiveViewOrCreate('RenderView')
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/00_3D_2.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Vehicle/00_3D_2.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -361,7 +361,7 @@ renderView1 = GetActiveViewOrCreate('RenderView')
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/00_3D_3.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Vehicle/00_3D_3.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -383,7 +383,7 @@ renderView1 = GetActiveViewOrCreate('RenderView')
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/00_3D_4.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Vehicle/00_3D_4.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 

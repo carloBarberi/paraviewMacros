@@ -5,6 +5,9 @@
 
 #######################################################################################
 
+# If true, the surface LIC will be shown
+sLIC = True
+
 # Image resolution
 imageSize = [1920, 1080]                            # 1080p
 imageSize = [2560, 1440]                            # 2K
@@ -23,11 +26,11 @@ Foam_name = 'results.foam'
 # It is defined in the snappyhexMesh
 surface_group = 'group/vehicleGroup'
 # Field that will be loaded
-Fields = ['UMean', 'pMean']
+Fields = ['wallShearStressMean']
 # Formula used to calculate CpY
-Formula = 'pMean * (Normals_Y) / (0.5*40^2)'
+Formula = 'mag(wallShearStressMean) / (0.5*1.225*40^2)'
 # Number of elements in the colorbar
-discretization = 31
+discretization = 256
 # Mirror plane, useful in half-vehicle simulations
 mirroringPlane = 'Y Min'
 
@@ -73,11 +76,6 @@ resultsfoam = FindSource(Foam_name)
 # create a new 'Extract Block'
 extractBlock1 = ExtractBlock(registrationName='ExtractBlock1', Input=resultsfoam)
 
-# get animation scene
-#animationScene1 = GetAnimationScene()
-
-#animationScene1.GoToLast()
-
 # Properties modified on extractBlock1
 extractBlock1.Selectors = ['/Root/boundary']
 
@@ -95,40 +93,19 @@ renderView1.Update()
 
 
 #######################################################################################
-# Calculation of the surface normals
-# find source
-extractBlock1 = FindSource('ExtractBlock1')
-
-# create a new 'Generate Surface Normals'
-generateSurfaceNormals1 = GenerateSurfaceNormals(registrationName='GenerateSurfaceNormals1', Input=extractBlock1)
-
-# get active view
-renderView1 = GetActiveViewOrCreate('RenderView')
-
-# show data in view
-generateSurfaceNormals1Display = Show(generateSurfaceNormals1, renderView1, 'GeometryRepresentation')
-
-# hide data in view
-Hide(extractBlock1, renderView1)
-
-# update the view to ensure updated data information
-renderView1.Update()
-
-
-#######################################################################################
 # Domain mirroring
 # create a new 'Reflect'
-reflect1 = Reflect(registrationName='Reflect1', Input=generateSurfaceNormals1)
+reflect1 = Reflect(registrationName='Reflect1', Input=extractBlock1)
 
 # Properties modified on reflect1
 reflect1.Plane = mirroringPlane
 
 # hide data in view
-Hide(generateSurfaceNormals1, renderView1)
+Hide(extractBlock1, renderView1)
 
 
 #######################################################################################
-# Calculation of CpY
+# Calculation of Cp
 # create a new 'Calculator'
 calculator1 = Calculator(registrationName='Calculator1', Input=reflect1)
 calculator1.Function = ''
@@ -183,37 +160,83 @@ renderView1.Update()
 
 
 #######################################################################################
-# Colorbar
-# Properties modified on resultLUT
-resultLUT.NumberOfTableValues = discretization
-
+# Surface LIC
 # get opacity transfer function/opacity map for 'Result'
 resultPWF = GetOpacityTransferFunction('Result')
 
 # get 2D transfer function for 'Result'
 resultTF2D = GetTransferFunction2D('Result')
 
+if sLIC:
+    # change representation type
+    calculator1Display.SetRepresentationType('Surface LIC')
+
+    # set scalar coloring
+    ColorBy(calculator1Display, ('POINTS', 'wallShearStressMean', 'Magnitude'))
+
+    # Hide the scalar bar for this color map if no visible data is colored by it.
+    HideScalarBarIfNotNeeded(resultLUT, renderView1)
+
+    # rescale color and/or opacity maps used to include current data range
+    calculator1Display.RescaleTransferFunctionToDataRange(True, False)
+
+    # show color bar/color legend
+    calculator1Display.SetScalarBarVisibility(renderView1, True)
+
+    # get color transfer function/color map for 'wallShearStressMean'
+    wallShearStressMeanLUT = GetColorTransferFunction('wallShearStressMean')
+
+    # get opacity transfer function/opacity map for 'wallShearStressMean'
+    wallShearStressMeanPWF = GetOpacityTransferFunction('wallShearStressMean')
+
+    # get 2D transfer function for 'wallShearStressMean'
+    wallShearStressMeanTF2D = GetTransferFunction2D('wallShearStressMean')
+
+    # set scalar coloring
+    ColorBy(calculator1Display, ('POINTS', 'Result'))
+
+    # Hide the scalar bar for this color map if no visible data is colored by it.
+    HideScalarBarIfNotNeeded(wallShearStressMeanLUT, renderView1)
+
+    # rescale color and/or opacity maps used to include current data range
+    calculator1Display.RescaleTransferFunctionToDataRange(True, False)
+
+    # show color bar/color legend
+    calculator1Display.SetScalarBarVisibility(renderView1, True)
+
+    # Properties modified on calculator1Display
+    calculator1Display.SelectInputVectors = ['POINTS', 'wallShearStressMean']
+
+    # Properties modified on calculator1Display
+    calculator1Display.ColorMode = 'Multiply'
+
+    # Properties modified on calculator1Display
+    calculator1Display.EnhanceContrast = 'Color Only'
+
+
+#######################################################################################
+# Colorbar setup
 # Apply a preset using its name. Note this may not work as expected when presets have duplicate names.
-resultLUT.ApplyPreset('Cool to Warm (Extended)', True)
+resultLUT.ApplyPreset('Rainbow Uniform', True)
+
+# Properties modified on resultLUT
+resultLUT.NumberOfTableValues = discretization
 
 # get color legend/bar for resultLUT in view renderView1
 resultLUTColorBar = GetScalarBar(resultLUT, renderView1)
 
 # Properties modified on resultLUTColorBar
-resultLUTColorBar.Title = 'CpY mean                        '
+resultLUTColorBar.Title = 'Mean skin friction coefficient             '
 resultLUTColorBar.RangeLabelFormat = '%-#6.1f'
 
 # Rescale transfer function
-resultLUT.RescaleTransferFunction(-1, 1)
+resultLUT.RescaleTransferFunction(0, 0.005)
 
 # Rescale transfer function
-resultPWF.RescaleTransferFunction(-1, 1)
+resultPWF.RescaleTransferFunction(0, 0.005)
 
 # Rescale 2D transfer function
-resultTF2D.RescaleTransferFunction(-1, 1, 0.0, 1.0)
-
-# Properties modified on resultLUT
-resultLUT.RGBPoints = [-1.0, 0.0, 0.0, 0.34902, -0.9375, 0.039216, 0.062745, 0.380392, -0.875, 0.062745, 0.117647, 0.411765, -0.8125, 0.090196, 0.184314, 0.45098, -0.75, 0.12549, 0.262745, 0.501961, -0.6875, 0.160784, 0.337255, 0.541176, -0.625, 0.2, 0.396078, 0.568627, -0.5625, 0.239216, 0.454902, 0.6, -0.5, 0.286275, 0.521569, 0.65098, -0.4374999999999999, 0.337255, 0.592157, 0.701961, -0.375, 0.388235, 0.654902, 0.74902, -0.3125000000000001, 0.466667, 0.737255, 0.819608, -0.25, 0.572549, 0.819608, 0.878431, -0.1874999999999999, 0.654902, 0.866667, 0.909804, -0.125, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.12500000000000022, 1.0, 1.0, 1.0, 0.1875, 0.94902, 0.733333, 0.588235, 0.25, 0.929412, 0.65098, 0.509804, 0.3125, 0.909804, 0.564706, 0.435294, 0.3749999999999998, 0.878431, 0.458824, 0.352941, 0.4375, 0.839216, 0.388235, 0.286275, 0.5, 0.760784, 0.294118, 0.211765, 0.5625, 0.701961, 0.211765, 0.168627, 0.6250000000000002, 0.65098, 0.156863, 0.129412, 0.6875, 0.6, 0.094118, 0.094118, 0.75, 0.54902, 0.066667, 0.098039, 0.8125, 0.501961, 0.05098, 0.12549, 0.8749999999999998, 0.45098, 0.054902, 0.172549, 0.9375, 0.4, 0.054902, 0.192157, 1.0, 0.34902, 0.070588, 0.211765]
+resultTF2D.RescaleTransferFunction(0, 0.005, 0.0, 1.0)
 
 # Hide orientation axes
 renderView1.OrientationAxesVisibility = 0
@@ -263,7 +286,7 @@ SetActiveSource(calculator1)
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/05_Top.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Cf/01_Top.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -296,8 +319,9 @@ SetActiveSource(calculator1)
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/05_Bottom.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Cf/01_Bottom.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
+
 
 #######################################################################################
 # Left picture
@@ -319,7 +343,7 @@ SetActiveSource(calculator1)
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/05_Left.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Cf/01_Left.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -343,7 +367,7 @@ SetActiveSource(calculator1)
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/05_Right.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Cf/01_Right.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -367,7 +391,7 @@ SetActiveSource(calculator1)
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/05_Top.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Cf/01_Front.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -391,7 +415,7 @@ SetActiveSource(calculator1)
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/05_Rear.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Cf/01_Rear.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -438,31 +462,83 @@ transform1Display.SetScalarBarVisibility(renderView1, True)
 
 
 #######################################################################################
+# Surface LIC for 3D views
+# get opacity transfer function/opacity map for 'Result'
+resultPWF = GetOpacityTransferFunction('Result')
+
+# get 2D transfer function for 'Result'
+resultTF2D = GetTransferFunction2D('Result')
+
+if sLIC:
+    # change representation type
+    transform1Display.SetRepresentationType('Surface LIC')
+
+    # set scalar coloring
+    ColorBy(transform1Display, ('POINTS', 'wallShearStressMean', 'Magnitude'))
+
+    # Hide the scalar bar for this color map if no visible data is colored by it.
+    HideScalarBarIfNotNeeded(resultLUT, renderView1)
+
+    # rescale color and/or opacity maps used to include current data range
+    transform1Display.RescaleTransferFunctionToDataRange(True, False)
+
+    # show color bar/color legend
+    transform1Display.SetScalarBarVisibility(renderView1, True)
+
+    # get color transfer function/color map for 'wallShearStressMean'
+    wallShearStressMeanLUT = GetColorTransferFunction('wallShearStressMean')
+
+    # get opacity transfer function/opacity map for 'wallShearStressMean'
+    wallShearStressMeanPWF = GetOpacityTransferFunction('wallShearStressMean')
+
+    # get 2D transfer function for 'wallShearStressMean'
+    wallShearStressMeanTF2D = GetTransferFunction2D('wallShearStressMean')
+
+    # set scalar coloring
+    ColorBy(transform1Display, ('POINTS', 'Result'))
+
+    # Hide the scalar bar for this color map if no visible data is colored by it.
+    HideScalarBarIfNotNeeded(wallShearStressMeanLUT, renderView1)
+
+    # rescale color and/or opacity maps used to include current data range
+    transform1Display.RescaleTransferFunctionToDataRange(True, False)
+
+    # show color bar/color legend
+    transform1Display.SetScalarBarVisibility(renderView1, True)
+
+    # Properties modified on calculator1Display
+    transform1Display.SelectInputVectors = ['POINTS', 'wallShearStressMean']
+
+    # Properties modified on calculator1Display
+    transform1Display.ColorMode = 'Multiply'
+
+    # Properties modified on calculator1Display
+    transform1Display.EnhanceContrast = 'Color Only'
+
+
+#######################################################################################
 # Colorbar
 # Apply a preset using its name. Note this may not work as expected when presets have duplicate names.
-resultLUT.ApplyPreset('Cool to Warm (Extended)', True)
+resultLUT.ApplyPreset('Rainbow Uniform', True)
 
 # Properties modified on resultLUT
-resultLUT.Discretize = discretization
+resultLUT.NumberOfTableValues = 35
 
 # get color legend/bar for resultLUT in view renderView1
 resultLUTColorBar = GetScalarBar(resultLUT, renderView1)
 
 # Properties modified on resultLUTColorBar
-resultLUTColorBar.Title = 'CpY mean'
+resultLUTColorBar.Title = 'Mean skin friction coefficient'
 resultLUTColorBar.RangeLabelFormat = '%-#6.1f'
 
 # Rescale transfer function
-resultLUT.RescaleTransferFunction(-1, 1)
+resultLUT.RescaleTransferFunction(0, 0.005)
 
 # Rescale transfer function
-resultPWF.RescaleTransferFunction(-1, 1)
+resultPWF.RescaleTransferFunction(0, 0.005)
 
 # Rescale 2D transfer function
-resultTF2D.RescaleTransferFunction(-1, 1, 0.0, 1.0)
-
-# Properties modified on resultLUT
-resultLUT.RGBPoints = [-1.0, 0.0, 0.0, 0.34902, -0.9375, 0.039216, 0.062745, 0.380392, -0.875, 0.062745, 0.117647, 0.411765, -0.8125, 0.090196, 0.184314, 0.45098, -0.75, 0.12549, 0.262745, 0.501961, -0.6875, 0.160784, 0.337255, 0.541176, -0.625, 0.2, 0.396078, 0.568627, -0.5625, 0.239216, 0.454902, 0.6, -0.5, 0.286275, 0.521569, 0.65098, -0.4374999999999999, 0.337255, 0.592157, 0.701961, -0.375, 0.388235, 0.654902, 0.74902, -0.3125000000000001, 0.466667, 0.737255, 0.819608, -0.25, 0.572549, 0.819608, 0.878431, -0.1874999999999999, 0.654902, 0.866667, 0.909804, -0.125, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.12500000000000022, 1.0, 1.0, 1.0, 0.1875, 0.94902, 0.733333, 0.588235, 0.25, 0.929412, 0.65098, 0.509804, 0.3125, 0.909804, 0.564706, 0.435294, 0.3749999999999998, 0.878431, 0.458824, 0.352941, 0.4375, 0.839216, 0.388235, 0.286275, 0.5, 0.760784, 0.294118, 0.211765, 0.5625, 0.701961, 0.211765, 0.168627, 0.6250000000000002, 0.65098, 0.156863, 0.129412, 0.6875, 0.6, 0.094118, 0.094118, 0.75, 0.54902, 0.066667, 0.098039, 0.8125, 0.501961, 0.05098, 0.12549, 0.8749999999999998, 0.45098, 0.054902, 0.172549, 0.9375, 0.4, 0.054902, 0.192157, 1.0, 0.34902, 0.070588, 0.211765]
+resultTF2D.RescaleTransferFunction(0, 0.005, 0.0, 1.0)
 
 # Hide orientation axes
 renderView1.OrientationAxesVisibility = 0
@@ -495,7 +571,7 @@ renderView1 = GetActiveViewOrCreate('RenderView')
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/06_3D_1.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Cf/02_3D_1.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -517,7 +593,7 @@ renderView1 = GetActiveViewOrCreate('RenderView')
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/06_3D_2.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Cf/02_3D_2.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -536,7 +612,7 @@ renderView1 = GetActiveViewOrCreate('RenderView')
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/06_3D_3.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Cf/02_3D_3.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 
@@ -558,7 +634,7 @@ renderView1 = GetActiveViewOrCreate('RenderView')
 renderView1.ResetCamera(True)
 
 # save screenshot
-SaveScreenshot(current_directory + '/../0_Figures/Cp/06_3D_4.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
+SaveScreenshot(current_directory + '/../0_Figures/Cf/02_3D_4.jpeg', layout1, ImageResolution=[imageSize[0], imageSize[1]],
     OverrideColorPalette='WhiteBackground')
 
 exit(0)
